@@ -1,40 +1,51 @@
-name: Petstore-build
+name: Test-Build
 on:
- workflow_dispatch
+  push:
+    branches:
+      - main
 jobs:
- test-api:
-  runs-on: ubuntu-latest
-  steps:
-      - name: Checkout
-        uses: actions/checkout@v1
+  test-api:
+    runs-on: ubuntu-latest
+    concurrency: ci-${{github.ref}}
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2.3.1
 
+
+      # INstall Node on the runner
       - name: Install Node
         uses: actions/setup-node@v1
         with:
-          node-version: "16.x"
+          node-version: '18'
 
+
+      # Install the newman command line utility and also install the html extra reporter
       - name: Install newman
         run: |
           npm install -g newman
           npm install -g newman-reporter-htmlextra
-          
+      # Make directory to upload the test results
       - name: Make Directory for results
         run: mkdir -p testResults
-        
-      - name: Run Postman collection
-        continue-on-error: true
-        run: 
-         npx newman run petstore.collection.json -r cli,htmlextra --reporter-htmlextra-export ./testResults/index.html
-      - name: Uploading Artifacts
-        uses: actions/upload-artifact@v1
+
+
+      # Run the POSTMAN collection
+      - name: Run POSTMAN collection
+        if: failure()
+        run: |
+          newman run store.vladpostman.json -r cli,htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme  > testResults/runreport1.html
+      # Upload the contents of Test Results directory to workspace
+      - name: Output the run Details
         if: always()
+        uses: actions/upload-artifact@v2
         with:
-         name: testResults
-         path: ./testResults
-      - name: Deploy to pages
-        if: always()
-        uses: peaceiris/actions-gh-pages@v3.7.3
+          name: RunReports
+          path: testResults
+          
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.5
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: ./testResults
+          branch: gh-pages
+          folder: testResults
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
