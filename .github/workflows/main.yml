@@ -1,13 +1,10 @@
-name: Newman report with Postman collection
+name: Petstore-build
 on:
-  push:
-    branches:
-      - main
-
+ workflow_dispatch
 jobs:
-  test-api:
-    runs-on: ubuntu-latest
-    steps:
+ test-api:
+  runs-on: ubuntu-latest
+  steps:
       - name: Checkout
         uses: actions/checkout@v1
 
@@ -20,23 +17,24 @@ jobs:
         run: |
           npm install -g newman
           npm install -g newman-reporter-htmlextra
+          
       - name: Make Directory for results
         run: mkdir -p testResults
-
-      - name: Run API tests
+        
+      - name: Run Postman collection
         continue-on-error: true
-        run: |
-          npx newman run petstore.collection.json -r cli,htmlextra --reporter-htmlextra-export ./testResults/index.html 
-      - name: Output the run Details
+        run: 
+         npx newman run petstore.collection.json -r cli,htmlextra --reporter-htmlextra-export ./testResults/index.html
+      - name: Uploading Artifacts
         uses: actions/upload-artifact@v1
         if: always()
         with:
-          name: testResults
-          path: ./testResults 
+         name: testResults
+         path: ./testResults
       - name: Deploy to pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3.7.3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: ./testResults 
+          publish_dir: ./testResults
