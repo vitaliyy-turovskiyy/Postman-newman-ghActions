@@ -2,7 +2,7 @@ name: Newman report with Postman collection
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   test-api:
