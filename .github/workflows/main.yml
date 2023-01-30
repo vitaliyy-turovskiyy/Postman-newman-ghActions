@@ -33,11 +33,11 @@ jobs:
         with:
           name: testResults
           path: ./testResults 
-      - name: Deploy to pages
-        if: always()
-        uses: peaceiris/actions-gh-pages@v3.7.3
+      - name: Publish Github Pages
+        if: ${{ always() }}
+        uses: peaceiris/actions-gh-pages@v3.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
           publish_dir: ./testResults
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
+          keep_files: true 
